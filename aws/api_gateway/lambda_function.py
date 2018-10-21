@@ -1,5 +1,8 @@
 ﻿import boto3, json, requests, emotion
 from datetime import datetime
+import decimal
+from boto3.dynamodb.conditions import Key, Attr
+
 
 print('Loading function')      # Functionのロードをログに出力
 
@@ -141,7 +144,7 @@ def used_info(event):
         if 'key:' in event['events'][0]['message']['text']: #keyがあればkey登録
             dataset.append(used_uid(event))
         if 'log:' in event['events'][0]['message']['text']: #logがあればlog出力
-            dataset.append(used_log(event))
+            used_log(event)
     
     return     dataset
 
@@ -161,11 +164,11 @@ def used_log(event): #指定したログの会話を持ってくる
     dynamoDB = boto3.resource("dynamodb")
     table = dynamoDB.Table("LINEDATA") # DynamoDBのテーブル名
 
-response = table.query(
-        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:])
+    response = table.query(
+        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:]) & Key('date').ne('error')
     )
 
-for i in response['Items']:
+    for i in response['Items']:
         print(i['ID'], ":", i['text'])
 
     return [2, event['events'][0]['source']['userId'], str("test")]
