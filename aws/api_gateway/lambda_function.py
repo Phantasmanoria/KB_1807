@@ -144,7 +144,7 @@ def used_info(event):
         if 'key:' in event['events'][0]['message']['text']: #keyがあればkey登録
             dataset.append(used_uid(event))
         if 'log:' in event['events'][0]['message']['text']: #logがあればlog出力
-            used_log(event)
+            dataset.append(used_log(event))
     
     return     dataset
 
@@ -165,10 +165,12 @@ def used_log(event): #指定したログの会話を持ってくる
     table = dynamoDB.Table("LINEDATA") # DynamoDBのテーブル名
 
     response = table.query(
-        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:]) & Key('date').ne('error')
+        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:])
     )
 
+    msg = ''
+    
     for i in response['Items']:
-        print(i['ID'], ":", i['text'])
+        msg = msg + str(i['ID']) + '(' + str(i['date']) + "): " + str(i['text']) + "\n"
 
-    return [2, event['events'][0]['source']['userId'], str("test")]
+    return [2, str(event['events'][0]['source']['userId']), str(msg)]
