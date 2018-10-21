@@ -1,5 +1,8 @@
-﻿import boto3, json, requests
+﻿import boto3, json, requests, emotion
 from datetime import datetime
+import decimal
+from boto3.dynamodb.conditions import Key, Attr
+
 
 print('Loading function')      # Functionのロードをログに出力
 
@@ -71,6 +74,9 @@ def nouse_info(event):
     else:
         dataset.append(nouse_sendmsg(event))
 
+    if str(event['finish']) == 'True':
+        dataset.append(nouse_end(event))
+        
     return dataset
 
 
@@ -103,9 +109,15 @@ def nouse_sendmsg(event):
     return [2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str(event['ID'] + ': ' + event['trans'])]
 
 
-def nouse_start(event): #会議の開始時に内容を送る「今日の議題はホニャララです
+def nouse_start(event): #会議の開始時に内容を送る「今日の議題はホニャララです」
 
     return [2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str('「議題内容」: ' + event['trans'][6:-2])]
+
+
+def nouse_end(event): #会議の終了時の声掛け
+
+    return [2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str('「議論の終了時間が来ました」')]
+
 
 
 def used_info(event):
@@ -127,12 +139,12 @@ def used_info(event):
       }
     )
 
-    dataset.append([2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str("line message")])
+#    dataset.append([2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str("line message")]) 
     if event['events'][0]['message'].get('text') != None: #LINEのメッセージ確認    
-        if 'key:' in event['events'][0]['message']['text']:
+        if 'key:' in event['events'][0]['message']['text']: #keyがあればkey登録
             dataset.append(used_uid(event))
-        if 'log:' in event['events'][0]['message']['text']:
-            dataset.append(used_uid(event))
+        if 'log:' in event['events'][0]['message']['text']: #logがあればlog出力
+            used_log(event)
     
     return     dataset
 
@@ -152,10 +164,11 @@ def used_log(event): #指定したログの会話を持ってくる
     dynamoDB = boto3.resource("dynamodb")
     table = dynamoDB.Table("LINEDATA") # DynamoDBのテーブル名
 
-    items = table.get_item(
-        Key={
-            "ID": str(str(event['events'][0]['message']['text'])[4:])
-        }
+    response = table.query(
+        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:]) & Key('date').ne('error')
     )
 
-    return [2, event['events'][0]['source']['userId'], items]
+    for i in response['Items']:
+        print(i['ID'], ":", i['text'])
+
+    return [2, event['events'][0]['source']['userId'], str("test")]
