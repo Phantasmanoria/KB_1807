@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 import pyaudio, time, audioop, math, sys, argparse, matplotlib,requests,json,pprint
 from gcloud.credentials import get_credentials
 from google.cloud.speech.v1beta1 import cloud_speech_pb2
@@ -48,7 +44,6 @@ def listen_loop(recognize_stream):
 	global recognition_result
 
 	for resp in recognize_stream:
-<<<<<<< HEAD
 		#print("recognize_stream:",recognize_stream)
 		#if resp.error.code != code_pb2.OK:
 			#raise RuntimeError(resp.error.message)#raise?
@@ -57,31 +52,11 @@ def listen_loop(recognize_stream):
 		for result in resp.results:
 			#print("for1")
 			for alt in result.alternatives:
-				#print("for2")
-				recognition_result.transcription = alt.transcript
-				#print ("transcript")
-				recognition_result.confidence = alt.confidence
-				#print ("confidence")
-				recognition_result.stability = result.stability
-				#print ("stability")
-				#リアルタイムで表示する
-				#printr(" ".join((alt.transcript))) #"	",
-=======
-		if resp.error.code != code_pb2.OK:
-			raise RuntimeError(resp.error.message)#raise?
-
-		for result in resp.results:
-			for alt in result.alternatives:
 				recognition_result.transcription = alt.transcript
 				recognition_result.confidence = alt.confidence
 				recognition_result.stability = result.stability
 				#リアルタイムで表示する
-
-				printr(" ".join((alt.transcript))) #"	",
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
-				#"stability: ", str(int(result.stability * 100)), "%",
-				#"time: ",time.strftime("%H:%M:%S"))))
-
+				printr(" ".join((alt.transcript)))
 			#ここで一言を言い終える
 			if result.is_final:
 				recognition_result.is_final = True
@@ -100,11 +75,7 @@ def request_stream():
 		interim_results=True,
 		single_utterance=True
 	)
-<<<<<<< HEAD
 	#print("yield1")
-=======
-
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 	yield cloud_speech_pb2.StreamingRecognizeRequest(streaming_config=streaming_config)
 
 	while True:
@@ -114,10 +85,7 @@ def request_stream():
 			return
 
 		if len(frames) > 0:
-<<<<<<< HEAD
 			#print("yield2")
-=======
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 			yield cloud_speech_pb2.StreamingRecognizeRequest(audio_content=frames.pop(0))
 
 def pyaudio_callback(in_data, frame_count, time_info, status):
@@ -141,7 +109,7 @@ def run_recognition_loop():
 		time.sleep(args.frame_seconds // 4)#処理を一時停止する
 		#print("----on-----")
 		#なんのif文かわからん
-		if len(frames) > 4:
+		if len(frames) > 2:
 			for frame_index in range(4):
 				data = frames[frame_index]
 				rms = audioop.rms(data, 2)
@@ -161,11 +129,7 @@ def run_recognition_loop():
 			#ここで録音して変換している
 			print("処理中")
 			listen_loop(service.StreamingRecognize(request_stream(), args.deadline_seconds))
-<<<<<<< HEAD
 			#print("service:",service.StreamingRecognize(request_stream(), args.deadline_seconds))
-=======
-
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 			#最終的な結果はここ
 			printr(" ".join((bold(recognition_result.transcription))))#"	",
 			#"confidence: ", str(int(recognition_result.confidence * 100)), "%",
@@ -173,12 +137,8 @@ def run_recognition_loop():
 			list = {"ID":ID,
 			"trans": recognition_result.transcription,
 			"confidence": recognition_result.confidence * 100,
-<<<<<<< HEAD
 			"time": time.strftime("%H:%M:%S"),
 			"finish": finish}
-=======
-			"time": time.strftime("%H:%M:%S")}
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 			json_data = json.dumps(list)
 			response = requests.post(
 		        'https://2dhdoj4j8c.execute-api.ap-northeast-1.amazonaws.com:443/dev/datadump',
@@ -192,10 +152,7 @@ def main():
 	global is_recording
 	global should_finish_stream
 	global ID
-<<<<<<< HEAD
 	global finish
-=======
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 	#音の定義，
 	pa = pyaudio.PyAudio()
 	#デバイスの定義
@@ -212,17 +169,13 @@ def main():
 					output=False,
 					frames_per_buffer=int(args.sampling_rate * args.frame_seconds),
 					stream_callback=pyaudio_callback)
-
 	stream.start_stream()
 
 	#-------------録音開始--------------
 	ID = input("IDを入力してください>>>")
 	RECORD_SECONDS = input("録音する長さを押してください>>>")
 	#時間の計測
-<<<<<<< HEAD
 	finish = False
-=======
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 	t1 = time.time()
 	while True:
 		is_recording = False
@@ -231,26 +184,17 @@ def main():
 		elapsed_time = t2-t1 #経過時間
 		if float(elapsed_time) > float(RECORD_SECONDS):
 			#print("経過時間:",elapsed_time)
-<<<<<<< HEAD
 			finish = True
 		run_recognition_loop()
 		if float(elapsed_time) > float(RECORD_SECONDS):
 			#print("経過時間:",elapsed_time)
 			break
-=======
-			break
-		run_recognition_loop()
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 	print("録音終了")
 	stream.stop_stream()
 	stream.close()
 
 	#-------------録音停止--------------
 	pa.terminate()
-<<<<<<< HEAD
-=======
-
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser() #コマンドライン上で引数を受け取る
 	parser.add_argument("--sampling-rate", "-rate", type=int, default=16000)
@@ -259,13 +203,10 @@ if __name__ == "__main__":
 	parser.add_argument("--audio-encoding", "-encode", type=str, default="LINEAR16")
 	parser.add_argument("--frame-seconds", "-fsec", type=float, default=0.1, help="1フレームあたりの時間（秒）. デフォルトは100ミリ秒")
 	parser.add_argument("--deadline-seconds", "-dsec", type=int, default=60*3+5) #ここが1言の終了条件
-<<<<<<< HEAD
-	parser.add_argument("--silent-decibel", "-decibel", type=int, default=30)
-=======
 	parser.add_argument("--silent-decibel", "-decibel", type=int, default=10)
->>>>>>> 016a9552decaa55dd42a858aa605e607f1b219ab
 	parser.add_argument("--speech-scope", "-scope", type=str, default="https://www.googleapis.com/auth/cloud-platform")
 	parser.add_argument("--ssl-port", "-port", type=int, default=443)
+
 	parser.add_argument("--host", "-host", type=str, default="speech.googleapis.com")
 	args = parser.parse_args()#引数を解析する
 	main()
