@@ -161,10 +161,11 @@ def used_log(event): #指定したログの会話を持ってくる
     dynamoDB = boto3.resource("dynamodb")
     table = dynamoDB.Table("LINEDATA") # DynamoDBのテーブル名
 
-    items = table.get_item(
-        Key={
-            "ID": str(str(event['events'][0]['message']['text'])[4:])
-        }
+response = table.query(
+        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:])
     )
 
-    return [2, event['events'][0]['source']['userId'], items]
+for i in response['Items']:
+        print(i['ID'], ":", i['text'])
+
+    return [2, event['events'][0]['source']['userId'], str("test")]
