@@ -52,7 +52,7 @@ def senddb (table, data):
 def sendmessage(ugID,text):
     # 文字列へ変換
 
-    line_access_token = 'JOkWyWKuTBqnN0XbutrwHFXn1bivaIJE7TwBXBkLmPtKs/fU3n+5I93nE1V1o3ipR3kIyUBiYo7FHCTDNPMjTkRSu1G0/LB8G+C26aKI0X23BFQ7h0ai24tbhM8QRbzaa1o8XbfrzOiq70BhiJFaPQdB04t89/1O/w1cDnyilFU='
+    line_access_token = ''
     line_push_api = 'https://api.line.me/v2/bot/message/push'
     messages = [
         {
@@ -115,17 +115,17 @@ def nouse_pushdb(event):
 
 def nouse_sendmsg(event):
     
-    return [2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str(event['ID'] + ': ' + event['trans'])]
+    return [2, str(""), str(event['ID'] + ': ' + event['trans'])]
 
 
 def nouse_start(event): #会議の開始時に内容を送る「今日の議題はホニャララです」
 
-    return [2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str('「議題内容」: ' + event['trans'][6:-2])]
+    return [2, str(""), str('「議題内容」: ' + event['trans'][6:-2])]
 
 
 def nouse_end(event): #会議の終了時の声掛け
 
-    return [2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str('「議論の終了時間が来ました」')]
+    return [2, str(""), str('「議論の終了時間が来ました」')]
 
 
 
@@ -148,7 +148,7 @@ def used_info(event):
       }
     )
 
-#    dataset.append([2, str("Cce37b5fa7cee08e2840ecdafe30e2462"), str("line message")]) 
+#    dataset.append([2, str(""), str("line message")]) 
     if event['events'][0]['message'].get('text') != None: #LINEのメッセージ確認    
         if 'key:' in event['events'][0]['message']['text']: #keyがあればkey登録
             dataset.append(used_uid(event))
