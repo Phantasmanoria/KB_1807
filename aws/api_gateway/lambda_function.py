@@ -1,4 +1,4 @@
-﻿import boto3, json, requests, emotion
+﻿import boto3, json, requests, emotion, os
 from datetime import datetime
 import decimal
 from boto3.dynamodb.conditions import Key, Attr
@@ -52,7 +52,7 @@ def senddb (table, data):
 def sendmessage(ugID,text):
     # 文字列へ変換
 
-    line_access_token = ''
+    line_access_token = os.environ['LINE_ACCESS_TOKEN']
     line_push_api = 'https://api.line.me/v2/bot/message/push'
     messages = [
         {
@@ -103,6 +103,7 @@ def nouse_pushdb(event):
     print("deadline: " + str(deadline))
 
     data = {
+        "from": "mic",
         "ID": str(ID), # P-Key
         "date": str(date), # P-key
         "text": str(text),
@@ -110,22 +111,22 @@ def nouse_pushdb(event):
         "deadline": str(deadline),
         }
     
-    return [1, 'LINEDATA', data]
+    return [1, os.environ['MIC_DB'], data]
 
 
 def nouse_sendmsg(event):
     
-    return [2, str(""), str(event['ID'] + ': ' + event['trans'])]
+    return [2, os.environ['DEFAULT_GID'], str(event['ID'] + ': ' + event['trans'])]
 
 
 def nouse_start(event): #会議の開始時に内容を送る「今日の議題はホニャララです」
 
-    return [2, str(""), str('「議題内容」: ' + event['trans'][6:-2])]
+    return [2, os.environ['DEFAULT_GID'], str('「議題内容」: ' + event['trans'][6:-2])]
 
 
 def nouse_end(event): #会議の終了時の声掛け
 
-    return [2, str(""), str('「議論の終了時間が来ました」')]
+    return [2, os.environ['DEFAULT_GID'], str('「議論の終了時間が来ました」')]
 
 
 
@@ -138,7 +139,7 @@ def used_info(event):
     print("timestamp: " + str(timestamp))
 
     dynamoDB = boto3.resource("dynamodb")
-    table = dynamoDB.Table("LINE") # DynamoDBのテーブル名
+    table = dynamoDB.Table(os.environ['LINE_DB']) # DynamoDBのテーブル名
 
     # DynamoDBへのPut処理実行
     table.put_item(
@@ -154,32 +155,35 @@ def used_info(event):
             dataset.append(used_uid(event))
         if 'log:' in event['events'][0]['message']['text']: #logがあればlog出力
             dataset.append(used_log(event))
-    
+        dataset.append([2, str(event['events'][0]['source']['groupId']), str(event['events'][0]['message']['text'])])
     return     dataset
 
 
 def used_uid(event): # 音声入力時のIDとuserIdを関連付ける
     
     data = {
+        "check": os.environ['CHECK_KEY'],
         "name": str(str(event['events'][0]['message']['text'])[4:]), # P-Key
         "uID": str(event['events'][0]['source']['userId']), # P-key
         }
     
-    return [1, 'LINEUID', data]
+    return [1, os.environ['UID_INFO'], data]
 
 
 def used_log(event): #指定したログの会話を持ってくる
     
     dynamoDB = boto3.resource("dynamodb")
-    table = dynamoDB.Table("LINEDATA") # DynamoDBのテーブル名
+    table = dynamoDB.Table(os.environ['MIC_DB']) # DynamoDBのテーブル名
 
     response = table.query(
-        KeyConditionExpression=Key('ID').eq(str(event['events'][0]['message']['text'])[4:])
+        KeyConditionExpression=Key('from').eq('mic')
     )
 
     msg = ''
     
     for i in response['Items']:
-        msg = msg + str(i['ID']) + '(' + str(i['date']) + "): " + str(i['text']) + "\n"
+        if i['ID'] == str(event['events'][0]['message']['text'])[4:]:
+            msg = msg + str(i['ID']) + '(' + str(i['date']) + "): " + str(i['text']) + "\n"
 
     return [2, str(event['events'][0]['source']['userId']), str(msg)]
+
