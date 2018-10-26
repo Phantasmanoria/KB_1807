@@ -155,14 +155,14 @@ def used_info(event):
             dataset.append(used_uid(event))
         if 'log:' in event['events'][0]['message']['text']: #logがあればlog出力
             dataset.append(used_log(event))
-        dataset.append([2, str(event['events'][0]['source']['groupId']), str(event['events'][0]['message']['text'])])
+        dataset.append([2, str(event['events'][0]['source']['groupId']), str('success for line message')])
     return     dataset
 
 
 def used_uid(event): # 音声入力時のIDとuserIdを関連付ける
     
     data = {
-        "check": os.environ['CHECK_KEY'],
+        "check": int(os.environ['CHECK_KEY']),
         "name": str(str(event['events'][0]['message']['text'])[4:]), # P-Key
         "uID": str(event['events'][0]['source']['userId']), # P-key
         }
